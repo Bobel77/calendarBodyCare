@@ -1,0 +1,57 @@
+.ovalzwei-menu {
+  z-index: 10;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: max-content;
+  height: max-content
+}
+
+.ovalzwei-menu-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border-radius: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  cursor: pointer;
+}
+
+.ovalzwei-menu-item::before {
+  content: attr(data-content);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  opacity: 0;
+  transition: 0.3s;
+  border: 2px solid #333;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+
+.ovalzwei-menu-item.accio::before,
+.ovalzwei-menu-item:hover::before {
+  opacity: 0.7;
+}
+
+.ovalzwei-menu-item:hover {
+  transform: translateX(20px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+
+}
