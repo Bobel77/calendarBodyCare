@@ -20,7 +20,6 @@ import io.kvision.table.TableType
 import kotlinx.browser.localStorage
 
 class TurnTable: GridPanel(justifyItems = JustifyItems.CENTER, templateColumns = "repeat(5, 1fr)", templateRows = "repeat(10, 1fr)", className = "ui link cards")  {
-    val tCards: ArrayList<Pair<VPanel,Pair<MyEvent, List<Member?>>>> = arrayListOf()
     init {
         width = 100.perc
         height = 100.perc

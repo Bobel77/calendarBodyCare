@@ -18,7 +18,9 @@ import org.koin.dsl.module
 import org.jetbrains.exposed.sql.and
 import org.apache.commons.codec.digest.DigestUtils
 import io.ktor.server.plugins.callloging.*
+import io.ktor.server.plugins.cors.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.*
 import kotlin.collections.set
 
@@ -61,7 +63,7 @@ fun Application.main() {
 
         applyRoutes(getServiceManager<IRegisterProfileService>())
         authenticate {
-            post("/login") {
+            post("login") {
                 val principal = call.principal<UserIdPrincipal>()
                 val result = if (principal != null) {
                     dbQuery {

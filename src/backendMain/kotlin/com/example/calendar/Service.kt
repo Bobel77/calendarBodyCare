@@ -9,6 +9,7 @@ import io.kvision.types.LocalDateTime
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.javatime.month
 import java.time.LocalDate
 import java.time.temporal.ChronoField
 import java.time.temporal.WeekFields
@@ -93,16 +94,18 @@ actual class DatabaseService: IDatabaseService {
 
     //// alle Stunden der Woche bekommen
    override suspend fun getEvents(year: Int, month: Int, dayOfMonth: Int): List<Pair<MyEvent, List<Member?>>> {
-     val week = LocalDate.of(year, month, dayOfMonth).get(WeekFields.of(Locale.GERMANY).weekOfYear())
+     /*val week = LocalDate.of(year, month, dayOfMonth).get(WeekFields.of(Locale.GERMANY).weekOfYear())*/
 
     return dbQuery {
         EventsTable
             .leftJoin(WeekEvents, { EventsTable.id }, { WeekEvents.eventID })
             .leftJoin(MemberTbl, { WeekEvents.memberID }, { MemberTbl.id })
             .slice(EventsTable.columns + MemberTbl.columns)
-            .select {
+            .selectAll() /*{
+                *//*EventsTable.uhrzeit.month() eq month*//*
                         EventsTable.calendarWeek eq week
-            }.map {
+            }*/
+            .map {
 
                 val event = MyEvent(
                     id = it[EventsTable.id].value,
@@ -119,7 +122,7 @@ actual class DatabaseService: IDatabaseService {
                     it[MemberTbl.nachname],
                     it[MemberTbl.logins],
                     it[MemberTbl.letzterLogin],
-                    password2 = week.toString()
+                    password2 = it[MemberTbl.password]
                 )
                 event to member
             }catch (e:Exception){

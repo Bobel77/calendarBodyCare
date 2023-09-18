@@ -22,10 +22,10 @@ class UserJoined() {
        AppScope.launch {
 
            delay(20)
-           if(Model.myEvents.isEmpty()){
+          /* if(Model.myEvents.isEmpty()){
 
                document.location?.reload()
-           }
+           }*/
        }
 
 

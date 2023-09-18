@@ -1,5 +1,6 @@
 package com.example.calendar
 
+import io.kvision.annotations.KVBindingRoute
 import io.kvision.annotations.KVService
 import io.kvision.types.LocalDate
 import io.kvision.types.LocalDateTime

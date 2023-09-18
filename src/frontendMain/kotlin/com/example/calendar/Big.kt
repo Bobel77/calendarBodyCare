@@ -59,13 +59,12 @@ class Big{
                         it.password2 = it.password
                         it.letzterlogin = Date().toString()
                     }
-                 console.log(Model.allMembers)
                     button("x",className = "close-flyout btn").onClick {
                         /*   closeFlyout()*/this@Flyout.hideFlyout()
                     }
                     tabPanel {
                         tab("Alle Mitglieder") {
-                            console.log(UNIT.vw)
+
                             Tabulator(Model.allMembers,options = TabulatorOptions(
                                 layout = Layout.FITCOLUMNS,
                                 pagination = true,
@@ -102,7 +101,6 @@ class Big{
                                                        letzterlogin = data.letzterlogin as? String,
                                                        abo = data.abo as? Boolean
                                                    )
-                                                console.log(memb)
                                              /* val test: Member? = Model.allMembers.find { it.id == index }*/
 
                                                 if (memb != null){
@@ -122,7 +120,7 @@ class Big{
                             button("Mitglied einfügen").onClick {
                                 AppScope.launch {
                                     try {
-                                        if(Model.allMembers.single { it.username == "${t1.value}.${t1.value}" }.username == "${t1.value}.${t1.value}"){
+                                        if(Model.allMembers.single { it.username == "${t1.value}.${t2.value}" }.username == "${t1.value}.${t2.value}"){
                                           Toast.success("Mitglied wurde bereits hinzugefügt")
                                         }
                                         else{

@@ -3,8 +3,8 @@ package com.example.calendar
 import io.kvision.core.Container
 import io.kvision.core.onChange
 import io.kvision.form.time.DateTime
-import io.kvision.html.Span
-import io.kvision.html.span
+import io.kvision.html.*
+import io.kvision.offcanvas.offcanvas
 import io.kvision.panel.tab
 import io.kvision.panel.tabPanel
 import io.kvision.panel.vPanel
@@ -22,6 +22,7 @@ class Site(
 ){
 
     fun intern(container: Container){
+
         container.tabPanel(){
             width = 100.perc
                 tab("Termine buchen"){
@@ -31,57 +32,51 @@ class Site(
                     vid(this@tab)
                 }
                 tab("Passwort ändern"){
-                  /* *//* val timeTable = TimeTable()*//*
-                    this@tab.add(timeTable)*/
 
-                   val  d1 = Date(2023,9,1)
-                   val d2 = Date(2023,9,0)
-                    vPanel {
-                        val d1d = if(d1.getDay() == 0){7}else{d1.getDate()}
-                        for (i in d1.getDay()downTo 0){
-                            val day = Date(2023,8,0).getDate() - i
-                            this@vPanel.span(day.toString())
-                        }
-                        for(i in d1.getDate()..d2.getDate()){
-                            this@vPanel.span(i.toString())
-                        }
-
-                        var lastDate: Date = d2
-
-                            while(lastDate.getDay() != 0){
-                                this@vPanel.span(lastDate.toString())
-                                lastDate = Date(lastDate.getMilliseconds() + 86400000)
-                            }
-
-
-                    }
+           /*<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="cs.css">
+  <title>Hover Menu</title>
+</head>
+<body>
+  <div class="menu">
+    <a href="#" class="menu-item">
+      <div class="icon-container">
+        <span class="icon">Icon 1</span>
+      </div>
+    </a>
+    <a href="#" class="menu-item">
+      <div class="icon-container">
+        <span class="icon">Icon 2</span>
+      </div>
+    </a>
+    <a href="#" class="menu-item">
+      <div class="icon-container">
+        <span class="icon">Icon 3</span>
+      </div>
+    </a>
+  </div>
+</body>
+</html>*/
 
                 }
             }
     }
 
     fun calender(container: Container){
-        var table = TurnTable()
+        container.button("Kalender").onClick {
+           container.offcanvas {
+               this.add(TimeTable())
+           width = 100.perc
+           }.show()
 
-        container.add(
-            DateTime(format = "YYYY-MM-DD", label = "Trainingswoche wählen").apply {
-                placeholder = "Datum auswählen"
-                onChange {
-                    AppScope.launch {
-                        localStorage.setItem("year",value!!.getFullYear().toString() )
-                        localStorage.setItem("month",value!!.getUTCMonth().toString() )
-                        localStorage.setItem("date",value!!.getDate().toString() )
-                        Model.getEvents(value!!.getFullYear(), value!!.getUTCMonth()+1,
-                            value!!.getDate())
-                        delay(100)
-                        table.updateTable()
-                    }
-                }
-            }
-        )
-        container.add(table)
+
+        }
         AppScope.launch {
-            table.updateTable()
+          /*  table.updateTable()*/
         }
     }
 
