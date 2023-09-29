@@ -52,8 +52,8 @@ kotlin {
                     proxy = mutableMapOf(
                         "/kv/*" to "http://localhost:8080",
                         "/kvws/*" to mapOf("target" to "ws://localhost:8080", "ws" to true),
-                        "/login" to "http://localhost:8080",
-                        "/logout"  to "http://localhost:8080"
+                      /*  "/login" to "http://localhost:8080",
+                        "/logout"  to "http://localhost:8080"*/
                     ),
                     static = mutableListOf("$buildDir/processedResources/frontend/main")
                 )
@@ -114,7 +114,7 @@ kotlin {
                 implementation("io.kvision:kvision-datetime:$kvisionVersion")
                 implementation("io.kvision:kvision-toastify:$kvisionVersion")
                 implementation("io.kvision:kvision-fontawesome:$kvisionVersion")
-
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
                 implementation("io.kvision:kvision-jquery:$kvisionVersion")
                 implementation("io.kvision:kvision-print:$kvisionVersion")
                 implementation("io.kvision:kvision-rest:$kvisionVersion")

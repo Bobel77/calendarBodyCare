@@ -80,6 +80,12 @@ object Model {
     }
     }
 
+    suspend fun deleteEvent(event: MyEvent){
+        Security.withAuth {
+            databaseService.deleteEvent(event)
+        }
+    }
+
     suspend fun readProfile() {
         Security.withAuth {
             member.value = profileService.getProfile()

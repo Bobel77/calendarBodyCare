@@ -25,7 +25,6 @@ suspend fun <RESP> ApplicationCall.withProfile(block: suspend (Member) -> RESP):
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual class DatabaseService: IDatabaseService {
-
     override suspend fun getMembers(): List<Member> {
         return dbQuery {
             MemberTbl.selectAll().map {
@@ -33,16 +32,17 @@ actual class DatabaseService: IDatabaseService {
         }.toMutableList()
     }
 
-    override suspend fun updateMembers(member: Member): Unit{
+    override suspend fun updateMembers(member: Member): Unit {
 
-        return dbQuery {   MemberTbl.update({ MemberTbl.id eq member.id }) {
-
+        return dbQuery {
+            MemberTbl.update({ MemberTbl.id eq member.id }) {
             it[this.vorname] = member.vorname!!
             it[this.nachname] = member.nachname!!
             it[this.username] = member.vorname + "." + member.nachname
             it[this.logins] = 0
-
-        }  }
+            if(member.password != null){ it[this.password] = DigestUtils.sha256Hex(member.password)}
+        }
+        }
     /*    if(member.id == 0){
             dbQuery {
                 MemberTbl.insert {
@@ -91,6 +91,11 @@ actual class DatabaseService: IDatabaseService {
     }
 
 
+    override suspend fun deleteEvent(event: MyEvent): Unit = dbQuery {
+        EventsTable.deleteWhere {
+            (EventsTable.id eq event.id)
+        }
+    }
 
     //// alle Stunden der Woche bekommen
    override suspend fun getEvents(year: Int, month: Int, dayOfMonth: Int): List<Pair<MyEvent, List<Member?>>> {
@@ -143,9 +148,7 @@ actual class BiggiService : IBiggiService{
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual class ProfileService(private val call: ApplicationCall) : IProfileService {
     override suspend fun getProfile(): Member {
-
      return call.withProfile { it }
-
     }
 
     override suspend fun bigMama(): Boolean {
@@ -177,6 +180,5 @@ actual class RegisterProfileService : IRegisterProfileService {
         }
         return true
     }
-
 }
 

@@ -53,5 +53,10 @@
 .ovalzwei-menu-item:hover {
   transform: translateX(20px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
 
+.fixedButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
 }

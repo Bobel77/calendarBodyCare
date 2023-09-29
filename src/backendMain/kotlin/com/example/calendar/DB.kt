@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object DB {
     fun init() {
         val driverClassName = "org.postgresql.Driver"
-        val jdbcURL = "jdbc:postgresql://localhost:6060/member?user=laz&password=lazy" //5432
+        val jdbcURL = "jdbc:postgresql://localhost:5432/member?user=laz&password=lazy" //6060
         val database = Database.connect(jdbcURL, driverClassName)
 
 

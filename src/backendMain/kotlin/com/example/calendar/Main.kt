@@ -22,6 +22,9 @@ import io.ktor.server.plugins.cors.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.util.*
+import io.ktor.util.Identity.decode
+import org.apache.commons.codec.binary.Hex
 import kotlin.collections.set
 
 
@@ -60,12 +63,12 @@ fun Application.main() {
 
 
     routing {
-
         applyRoutes(getServiceManager<IRegisterProfileService>())
         authenticate {
             post("login") {
                 val principal = call.principal<UserIdPrincipal>()
                 val result = if (principal != null) {
+
                     dbQuery {
                         MemberTbl.select { MemberTbl.username eq principal.name }.firstOrNull()?.let {
                             val profile =
@@ -75,7 +78,8 @@ fun Application.main() {
                                     vorname = it[MemberTbl.vorname],
                                     nachname = it[MemberTbl.nachname],
                                     logins = it[MemberTbl.logins],
-                                    letzterlogin = it[MemberTbl.letzterLogin]
+                                    letzterlogin = it[MemberTbl.letzterLogin],
+                                    /*password = hex(Digest(it[MemberTbl.password]!!).build())*/
                                 )
                             call.sessions.set(profile)
                             HttpStatusCode.OK

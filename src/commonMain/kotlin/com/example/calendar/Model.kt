@@ -15,7 +15,7 @@ data class MyEvent(
 data class Member(
     val id: Int?  = null,
     val username: String?  = null,
-    val password: String?  = null,
+    var password: String?  = null,
     val vorname: String?  = null,
     val nachname: String?  = null,
     val logins: Int?  = null,

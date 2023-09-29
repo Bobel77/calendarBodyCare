@@ -1,24 +1,38 @@
 package com.example.calendar
 
 import io.kvision.core.*
-import io.kvision.html.Div
-import io.kvision.html.div
-import io.kvision.html.link
+import io.kvision.html.*
 import io.kvision.jquery.invoke
 import io.kvision.jquery.jQuery
-import io.kvision.panel.HPanel
-import io.kvision.panel.VPanel
-import io.kvision.panel.hPanel
-import io.kvision.panel.vPanel
+import io.kvision.offcanvas.offcanvas
+import io.kvision.panel.*
 import io.kvision.utils.auto
 import io.kvision.utils.perc
 import io.kvision.utils.px
 import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 object Menu {
     var myMenu = Div()
 }
- class MyMenu: HPanel(){
+ class MyMenu(val rt: Root): HPanel(){
+     private val btn = Button("Menu", className = "fixedButton"){
+         this.onClick {
+             getRoot()!!.offcanvas {
+                val md = menuDiv.apply {
+                    width = 100.perc
+                    onClick {
+                        AppScope.launch {
+                            delay(500)
+                            this@offcanvas.hideBootstrap()
+                        }
+                       } }
+                 this.add(md)
+             }.show()
+         }
+     }
      private val menuDiv = div(className = "ovalzwei-menu"){
          alignSelf = AlignItems.START
          justifySelf = JustifyItems.START
@@ -26,7 +40,7 @@ object Menu {
          id = "ovalM"
          background = Background(color = Color.hex(13012563))
 
-         Model.offCanvasSpans.forEach {site->
+         Model.offCanvasSpans.forEach { site ->
 
              link(site.siteName,url = "#!/${site.siteName}", className = "ovalzwei-menu-item"){
                  background = Background(color = Color.hex(13012563))
@@ -48,6 +62,10 @@ object Menu {
 
 
     init {
+        if(window.screen.width < 800.0){
+            rt.add(btn)
+            this@MyMenu.remove(menuDiv)
+        }
         try {
             changePanel(Model.offCanvasSpans.filter { it.siteName == document.URL.split("#!/")[1]}.single())
         }catch (e:Exception){

@@ -12,13 +12,13 @@ import org.jetbrains.exposed.sql.javatime.time
 
 
 object MemberTbl : IntIdTable() {
-    val username = varchar("Username", 8000).nullable()
-    val password = varchar("Password", 8000).nullable()
-    val vorname = varchar("Vorname",8000).nullable()
-    val nachname = varchar("Nachname",8000).nullable()
-    val abo = bool("Abo").nullable()
-    val logins = integer("Logins").nullable()
-    val letzterLogin = varchar("LetzterLogin",8000).nullable()
+    var username = varchar("Username", 8000).nullable()
+    var password = varchar("Password", 8000).nullable()
+    var vorname = varchar("Vorname",8000).nullable()
+    var nachname = varchar("Nachname",8000).nullable()
+    var abo = bool("Abo").nullable()
+    var logins = integer("Logins").nullable()
+    var letzterLogin = varchar("LetzterLogin",8000).nullable()
 }
 
 object WeekEvents : IntIdTable() {
