@@ -1,21 +1,28 @@
 package com.example.calendar
 
 import io.kvision.core.*
-import io.kvision.html.Div
-import io.kvision.html.button
-import io.kvision.html.div
-import io.kvision.html.span
+import io.kvision.form.formPanel
+import io.kvision.form.text.Text
+import io.kvision.form.time.DateTime
+import io.kvision.html.*
 import io.kvision.modal.Modal
+import io.kvision.modal.ModalSize
 import io.kvision.panel.*
+import io.kvision.state.ObservableList
+import io.kvision.state.observableListOf
 import io.kvision.table.*
 import io.kvision.table.TableType
 import io.kvision.tabulator.*
 import io.kvision.toast.Toast
 import io.kvision.toast.ToastOptions
 import io.kvision.toast.ToastPosition
+import io.kvision.types.LocalDateTime
 import io.kvision.types.toStringF
 import io.kvision.utils.perc
 import io.kvision.utils.px
+import io.kvision.window.window
+import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.serializer
@@ -27,18 +34,24 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
      var month = Date().getMonth()
     init {
         AppScope.launch {
+
             Model.getEvents(2023, 9, 13)
             delay(10)
             addDays()
         }
-        width = 80.perc
-        height = 100.perc
+       /* width = 100.perc
+        height = 100.perc*/
 
     }
 
     fun changeMonth(i: Int): Date {
         month += i
-        if(month < 0 || month > 12){
+        if( month > 11){
+            month = 0
+            year += i
+        }
+        else if (month < 0){
+            month = 11
             year += i
         }
 
@@ -52,16 +65,16 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
         listOf("Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag").forEach {
             this@TimeTable.vPanel {
                 span(it)
-            fontWeight=FontWeight.BOLD
+            fontWeight = FontWeight.BOLD
             }
         }
 
 
-        val dayArr = arrayListOf<Date>()
+        val dayArr = mutableListOf<Date>()
         val  d1 = Date(year,month,1) //1. Sept
         val d2 = Date(year, month+1,0) //30.Sept
         val d0 = Date(year,month,0)
-        val dSunday = if(d0.getDay() == 0){7}else(d0.getDay())
+        val dSunday = if(d0.getDay() == 0){ 7 } else (d0.getDay())
         for (i in dSunday downTo 1){
             val day = d0.getDate() + 1 - i
             dayArr.add(Date(year, month-1, day))
@@ -77,16 +90,17 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
             lastDate += 1
         }
 
-        dayArr.forEach {date->
+        dayArr.forEach {date ->
             if(date.getDay() != 0){
                 vPanel(/*justify = JustifyContent.CENTER,*/ alignItems = AlignItems.CENTER){
                     width = 100.perc
                     span(date.getDate().toString())
-                    val eventsOnDay = Model.myEvents.filter{event -> event.first.localDateTime!!.toStringF("DD.MM.YYYY") == date.toStringF("DD.MM.YYYY")}
-                    eventsOnDay.forEach{
+                    val eventsOnDay : List<Pair<MyEvent, List<Member?>>> = Model.myEvents.filter{
+                            event -> event.first.localDateTime!!.toStringF("DD.MM.YYYY") == date.toStringF("DD.MM.YYYY")
+                    }
+                    eventsOnDay.sortedBy { it.first.localDateTime!!.toStringF("HHmm") }.forEach{
                         termincard(it)
                     }
-                        /*   span("${eventsOnDay.first.localDateTime!!.toStringF("HH:mm")} ${eventsOnDay.first.training}" )*/
                 }
             }
         }
@@ -114,32 +128,32 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
                 }
 
                 AppScope.launch {
+                    val anzTeilnemer = event.anzahlTeilnehmer?: 13 //TeilnehmerAnzahl
+
                     if(Model.bigM()){
                         if(members[0] == null){
-                            span(  "0/ 13 ")
+                            span(  "0/$anzTeilnemer")
                         }
                         else{
-                            span( "${members.size} /13 ")
+                            span( "${members.size} /$anzTeilnemer ")
                         }
                         this@vPanel.onClick(){
                             bigMUnit(mevent, event.id!!, Pair(this@termincard, this@div))
                         }
                         background = Background(color = Color(Col.LIGHTGREEN.toString()))
-                        if(members.size >= 13){
+                        if(members.size >= anzTeilnemer){
                             background = Background(color = Color(Col.DIMGRAY.toString()))
                         }
                     }
                     else{
-
-                        if(members.size >= 13){
-                            background = Background(color = Color(Col.DIMGRAY.toString()))
-                        }
-
-                        else if(members.any{it?.username == Model.member.value.username!!}){
+                        if(members.any{it?.username == Model.member.value.username!!}){
                             background = Background(color = Color(Col.GOLD.toString()))
                             onClick {
                                 terminAbsagen(event)
                             }
+                        }
+                        else if(members.size >= anzTeilnemer){
+                            background = Background(color = Color(Col.DIMGRAY.toString()))
                         }
                         else {
                             background = Background(color = Color(Col.LIGHTGREEN.toString()))
@@ -169,9 +183,9 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
     }
 
     private fun bigMUnit(event: Pair<MyEvent, List<Member?>>, id: Int, container: Pair<Container, Div>) {
-        Modal(event.first.localDateTime?.toStringF("DD.MM.YYYY HH:mm")) {
-            width = 100.perc
-            height = 100.perc
+        Modal(event.first.localDateTime?.toStringF("DD.MM.YYYY HH:mm"), size = ModalSize.LARGE) {
+            /*width = 100.perc
+            height = 100.perc*/
 
             tabPanel {
                 tab("Teilnehmer"){
@@ -221,6 +235,42 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
                         }
                     }
                 }
+                tab("Termin ändern"){
+                    console.log(event.first)
+                    formPanel<Form> {
+                        add(
+                            Form::text,
+                            Text(label = "Art des Trainings") {
+                                this.value = event.first.training.toString()
+                                placeholder = "${event.first.training}"
+                            })
+
+                        add(Form::zahl,
+                            Text(label = "Anzahl Teilnehmer", type = InputType.NUMBER) {
+                                this.value = event.first.anzahlTeilnehmer.toString()
+                                placeholder = "${event.first.anzahlTeilnehmer}"
+                            }
+                        )
+
+                        button("Termin ändern").onClick {
+                            val fp = this@formPanel.getData()
+                            AppScope.launch {
+                                Model.updateEvents(
+                                    event.first.apply {
+                                this.training = fp.text?: this.training
+                                this.anzahlTeilnehmer = fp.zahl?.toInt()?: this.anzahlTeilnehmer
+                                    }
+                                )
+                                delay(10)
+                                Model.getEvents(2022,2,2)
+                                delay(10)
+                                Toast.success("Termin geändert", ToastOptions(position = ToastPosition.TOPLEFT))
+                                updateTable()
+                                this@Modal.hide()
+                            }
+                        }
+                }
+                }
                 tab("Termin löschen"){
                     button("Diesen Termin löschen!").onClick {
                         Toast.success("Bitte Warten", ToastOptions(position = ToastPosition.TOPLEFT))
@@ -229,16 +279,17 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
                            event.second.forEach {
                                Model.deleteMemberFromEvent(it!!.id!!, event.first.id!!)
                            }
-                       }catch (e:Exception){}
+                       } catch (_:Exception){ }
 
                             try {
                                 Model.deleteEvent(event.first)
                                 delay(10)
                                 Model.getEvents(2022,2,2)
+                                delay(10)
                                 Toast.success("Termin gelöscht", ToastOptions(position = ToastPosition.TOPLEFT))
-                                container.first.remove(container.second)
+                                updateTable()
                                 this@Modal.hide()
-                            } catch (e:Exception){console.log("Fehler " +e)}
+                            } catch (_:Exception){}
                         }
                     }
                 }
@@ -291,7 +342,6 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
                 duration = 4000
             )
             )
-
         }
     }
 
@@ -318,8 +368,6 @@ class TimeTable(): GridPanel(justifyItems = JustifyItems.CENTER, templateColumns
                 duration = 4000
             ))
             updateTable()
-
-            /* document.location?.reload()*/
         }
     }
 }

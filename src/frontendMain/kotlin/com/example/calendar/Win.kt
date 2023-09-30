@@ -6,6 +6,7 @@ import io.kvision.form.formPanel
 import io.kvision.form.number.spinner
 import io.kvision.form.text.Text
 import io.kvision.form.time.DateTime
+import io.kvision.html.InputType
 import io.kvision.html.button
 import io.kvision.html.span
 import io.kvision.modal.Modal
@@ -24,7 +25,6 @@ import kotlinx.datetime.*
 class Win(container: Root) : Offcanvas() {
     init {
         Menu.myMenu.getRoot()!!.offcanvas("Termin hinzufügen", OffPlacement.START){
-
        formPanel<Form> {
                 add(
                     Form::text,
@@ -44,43 +44,58 @@ class Win(container: Root) : Offcanvas() {
                         placeholder = "Enter time"
                     }
                 )
-                var spin: Int = 1
-              spinner(label = "Wiederholen",
-               min = 1,
-               max = 20,
-               step = 1).onChange { spin = value as Int }
+           add(
+               Form::spinner,
+               Text(label = "Wiederholen", type = InputType.NUMBER) {
+                   placeholder = "Wiederholen"
+               }
+           )
+                 add(Form::zahl,
+                    Text(label = "Anzahl Teilnehmer", type = InputType.NUMBER) {
+                    placeholder = "Anzahl Teilnehmer"
+           }
+           )
 
                 button("Termin erstellen").onClick {
                     val fp = this@formPanel.getData()
+                    val spin: Int = fp.spinner?.toInt()?: 1
                     Modal("Termin einfügen"){
                         fp.date
                         val myEvent = MyEvent(
                             1,
                             localDateTime = LocalDateTime(year = fp.date!!.getFullYear(), month = fp.date.getMonth(),
                             fp.date.getDate(), fp.time!!.getHours(), fp.time.getMinutes()),
-                            training = fp.text
+                            training = fp.text,
+                            anzahlTeilnehmer = fp.zahl?.toInt()
                         )
 
                         vPanel {
                             span(myEvent.localDateTime!!.toStringF("DD.MM.YYYY HH:mm"))
                             span(myEvent.training)
+                            span(myEvent.anzahlTeilnehmer.toString())
                             span("Wiederholen: $spin")
                             val timeZone = TimeZone.UTC
-                            val test = kotlinx.datetime.LocalDateTime(fp.date!!.getFullYear(), fp.date.getMonth()+1,
+                            val addTimeZone = kotlinx.datetime.LocalDateTime(fp.date!!.getFullYear(), fp.date.getMonth()+1,
                                 fp.date.getDate(), fp.time!!.getHours(), fp.time.getMinutes()).toInstant(timeZone)
 
                             button("einfügen").onClick {
-                                   for(i in 0..spin){
-                                       console.log(i)
-                                    val abc = test.plus(i, DateTimeUnit.WEEK, timeZone).toLocalDateTime(timeZone)
+                                   for(i in 1..spin){
+                                    val locDate = addTimeZone.plus(i-1, DateTimeUnit.WEEK, timeZone).toLocalDateTime(timeZone)
 
                                     AppScope.launch {
-                                        Model.insertEvent(MyEvent(
+                                        Model.insertEvent(
+                                            MyEvent(
                                             1,
-                                            localDateTime =  LocalDateTime(abc.year, abc.monthNumber-1, abc.dayOfMonth, myEvent.localDateTime!!.getHours(),
+                                            localDateTime = LocalDateTime(
+                                                year = locDate.year,
+                                                month = locDate.monthNumber-1,
+                                                day = locDate.dayOfMonth,
+                                                myEvent.localDateTime!!.getHours(),
                                                 myEvent.localDateTime!!.getMinutes()),
-                                            training = fp.text
-                                        ))
+                                            training = fp.text,
+                                            anzahlTeilnehmer = fp.zahl?.toInt()
+                                        )
+                                        )
                                     }
                                 }
                                 Toast.success("Termin eingefügt")
@@ -88,7 +103,6 @@ class Win(container: Root) : Offcanvas() {
                             }
                         }
                     }.show()
-
                 }
             }
        }.show()

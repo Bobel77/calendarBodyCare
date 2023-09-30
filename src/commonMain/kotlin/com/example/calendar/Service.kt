@@ -13,9 +13,12 @@ interface IDatabaseService{
     suspend fun deleteMemberFromEvent(mId: Int, eId: Int)
     suspend fun addMemberToEvent(mId: Int, eId: Int)
     suspend fun insertEvent(myEvent: MyEvent)
+    suspend fun updateEvent(myEvent: MyEvent)
     suspend fun deleteEvent(myEvent: MyEvent)
     suspend fun getMembers(): List<Member>
     suspend fun updateMembers(member: Member)
+    suspend fun getVideos(): List<Int>
+    suspend fun changeVideos(vid: Array<Int>)
 
 }
 

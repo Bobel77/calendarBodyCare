@@ -1,5 +1,5 @@
   .flyout-overlay {
-      z-index: 1000;
+    z-index: 100;
     display: none;
     position: fixed;
     bottom: 0;
@@ -8,7 +8,7 @@
     height: 0;
     background-color: rgba(0, 0, 0, 0.5);
     overflow: hidden;
-   /* transition: height 0.3s ease-in-out;*/
+    transition: height 0.3s ease-in-out;
   }
 
   .flyout-content {
@@ -18,7 +18,7 @@
     height: 85vh;
     bottom: -100%; /* Move the content off the screen initially */
   	margin-top: 2%; /* Add a small margin to the top */
-    /*transition: bottom 0.3s ease-in-out;*/
+    transition: bottom 0.3s ease-in-out;
   }
 
   .close-flyout-btn {
@@ -29,3 +29,4 @@
     right: 10px;
     cursor: pointer;
   }
+

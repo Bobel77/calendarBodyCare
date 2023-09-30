@@ -28,7 +28,8 @@ object Menu {
                             delay(500)
                             this@offcanvas.hideBootstrap()
                         }
-                       } }
+                       }
+                }
                  this.add(md)
              }.show()
          }
@@ -42,7 +43,7 @@ object Menu {
 
          Model.offCanvasSpans.forEach { site ->
 
-             link(site.siteName,url = "#!/${site.siteName}", className = "ovalzwei-menu-item"){
+             link(site.siteName, url = "#!/${site.siteName}", className = "ovalzwei-menu-item"){
                  background = Background(color = Color.hex(13012563))
 
                  onClick {
@@ -58,7 +59,8 @@ object Menu {
          overflow = Overflow.HIDDEN
          width = 80.perc
          marginLeft = auto
-         marginRight = auto}
+         marginRight = auto
+    }
 
 
     init {
@@ -84,7 +86,7 @@ object Menu {
                 when(site.function)
                 {
                     "video" -> site.vid(vTapPanel)
-                    "calender" -> site.calender(vTapPanel)
+                    "calender" -> AppScope.launch { site.calender(vTapPanel) }
                     "Mitgliederbereich" -> site.intern(vTapPanel)
                   /*  "fotos" ->*/
 

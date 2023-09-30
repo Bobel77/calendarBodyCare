@@ -64,11 +64,11 @@ fun Application.main() {
 
     routing {
         applyRoutes(getServiceManager<IRegisterProfileService>())
+
         authenticate {
             post("login") {
                 val principal = call.principal<UserIdPrincipal>()
                 val result = if (principal != null) {
-
                     dbQuery {
                         MemberTbl.select { MemberTbl.username eq principal.name }.firstOrNull()?.let {
                             val profile =
@@ -79,13 +79,14 @@ fun Application.main() {
                                     nachname = it[MemberTbl.nachname],
                                     logins = it[MemberTbl.logins],
                                     letzterlogin = it[MemberTbl.letzterLogin],
-                                    /*password = hex(Digest(it[MemberTbl.password]!!).build())*/
+                                    letzterLoginWeek = it[MemberTbl.letzterLoginWeek]
                                 )
                             call.sessions.set(profile)
                             HttpStatusCode.OK
                         } ?: HttpStatusCode.Unauthorized
                     }
                 } else {
+
                     HttpStatusCode.Unauthorized
                 }
                 call.respond(result)
@@ -99,7 +100,6 @@ fun Application.main() {
     }
 
     val module = module {
-        factoryOf(::BiggiService)
         factoryOf(::DatabaseService)
         factoryOf(::RegisterProfileService)
         factoryOf(::ProfileService)

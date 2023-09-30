@@ -7,6 +7,7 @@ import io.kvision.remote.getService
 import io.kvision.state.ObservableValue
 import io.kvision.state.observableListOf
 import io.kvision.utils.syncWithList
+import kotlinx.coroutines.delay
 
 
 object Model {
@@ -30,21 +31,31 @@ object Model {
         Site("Impressum", listOf<Span>(Span("Impressum"))),
     )
 /// functions for members
+     suspend fun changeVideos(vid: Array<Int>){
+        databaseService.changeVideos(vid)
+    }
     suspend fun videos(container: Container){
+    val vids : List<Int> = databaseService.getVideos()
+    delay(50)
         Security.withAuth {
-           val vid = "https://bodycare-pilates.de/Videos/stunde11low.mp4"
-            val myVid: Tag = Tag(
-                TAG.VIDEO, attributes = mapOf(
-                "src" to vid,
-                "type" to "video/mp4",
-                "width" to "680",
-                "height" to "400",
-                "controls" to "false",
-                "controlsList" to "nodownload"
-            )){
-                contextMenu { }
-            }
-            container.add(myVid)
+            try {
+                vids.forEach {
+
+                    val vid = "https://bodycare-pilates.de/Videos/stunde${it}low.mp4"
+                    val myVid: Tag = Tag(
+                        TAG.VIDEO, attributes = mapOf(
+                            "src" to vid,
+                            "type" to "video/mp4",
+                            "width" to "680",
+                            "height" to "400",
+                            "controls" to "false",
+                            "controlsList" to "nodownload"
+                        )){
+                        contextMenu { }
+                    }
+                    container.add(myVid)
+                }
+            } catch (e:Exception){console.log("Vid init failed")}
         }
     }
 
@@ -71,6 +82,11 @@ object Model {
     suspend fun insertEvent(myEvent: MyEvent){
         Security.withAuth {
             databaseService.insertEvent(myEvent)
+        }
+    }
+    suspend fun updateEvents(myEvent: MyEvent){
+        Security.withAuth {
+            databaseService.updateEvent(myEvent)
         }
     }
     suspend fun getEvents(year: Int, month: Int, day: Int){

@@ -25,10 +25,6 @@ import kotlin.js.Date
 val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 
 class App : Application() {
-    /* 14394730
-            bg all = 13012563
-            16110785
-            15446658*/
 
     init {
         require("css/ovalzwei.css")
@@ -38,7 +34,7 @@ class App : Application() {
 
      try {
      LoginService("/login")
-    }catch (e:Exception){"no User"}
+    }catch (e:Exception){console.log("no User")}
     }
 
 
@@ -65,8 +61,6 @@ vPanel() {
 
         }
     }
-    console.log(window.screen.width)
-
 
     add(MyMenu(this@root).apply {
         border = Border(2.px, BorderStyle.SOLID, Color.hex(8806196))
@@ -90,12 +84,13 @@ data class Form(
     @Contextual val date: Date? = null,
     @Contextual val time: Date? = null,
     @Contextual val daTime: DateTime? = null,
-    @Contextual val spinner: Spinner? = null,
+    @Contextual val spinner: String? = null,
     val vorname: String? = null,
     val nachname: String? = null,
     val password: String? = null,
     val password2: String? = null,
     val checkBox: Boolean?,
+    val zahl: String? = null,
 )
 
 fun main() {

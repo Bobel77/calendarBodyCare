@@ -3,18 +3,20 @@ package com.example.calendar
 import io.kvision.core.*
 import io.kvision.form.formPanel
 import io.kvision.form.text.Password
-import io.kvision.form.text.password
-import io.kvision.form.time.DateTime
 import io.kvision.html.*
+import io.kvision.modal.Modal
 import io.kvision.offcanvas.OffPlacement
 import io.kvision.offcanvas.offcanvas
 import io.kvision.panel.*
 import io.kvision.toast.Toast
-import io.kvision.types.KV_DEFAULT_DATE_FORMAT
-import io.kvision.utils.perc
-import kotlinx.browser.localStorage
+import io.kvision.types.LocalDate
+import io.kvision.types.LocalDateTime
+import io.kvision.types.toStringF
+import io.kvision.utils.*
+import kotlinx.browser.document
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.internal.JSJoda.Clock
 import kotlin.js.Date
 
 class Site(
@@ -24,7 +26,6 @@ class Site(
 ){
 
     fun intern(container: Container){
-
         container.hPanel(justify = JustifyContent.CENTER){
             AppScope.launch { Model.getEvents(2003,2,2) }
             width = 100.perc
@@ -36,7 +37,9 @@ class Site(
                     height = x
                     span("Termine buchen")
                 }
-                }.onClick {calender(this@hPanel) }
+                }.onClick {
+                    AppScope.launch {  calender(this@hPanel) }
+                }
 
                 div(className = "round-menu-item"){
                     height = width
@@ -94,63 +97,148 @@ class Site(
                    }
             }
         }.show()
-
     }
 
-    fun calender(container: Container){
+    suspend fun calender(container: Container){
         val timetable = TimeTable()
-           container.offcanvas {
-               caption = "Kalender"
-               width = 100.perc
-              val choosedDate = hPanel(justify = JustifyContent.CENTER, spacing = 10){
+
+        Flyout().run {
+            flyContent.apply {
+
                 width = 100.perc
-                fontWeight = FontWeight.BOLDER
-                span(Date().toLocaleDateString("default", dateLocaleOptions { month = "long" }))
-              }
-               flexPanel(
-                   FlexDirection.ROW, FlexWrap.WRAP, JustifyContent.SPACEBETWEEN, AlignItems.CENTER,
-                   spacing = 5
-               ) {
-                   width = 100.perc
-                   height = 90.perc
-                   button("<", style = ButtonStyle.DARK).apply {
-                       height = 80.perc
-                       onClick {
-                           choosedDate.apply {
-                               this.removeAll()
-                               this.span(timetable.changeMonth(-1).toLocaleDateString("default", dateLocaleOptions { month = "long" }))
-                           }
-                       }
-                   }
+                height = 100.vh
 
-                   this.add(timetable)
+                val choosedDate = Div{
+                    fontWeight = FontWeight.BOLDER
+                    fontSize = 32.px
+                    marginBottom = 10.px
+                    position = Position.RELATIVE
 
-                   button(">", style = ButtonStyle.DARK).apply {
-                       height = 80.perc
-                       onClick {
-                           choosedDate.apply {
-                               this.removeAll()
-                               this.span(timetable.changeMonth(1).toLocaleDateString("default", dateLocaleOptions { month = "long" }))
-                           }
-                       }
-                   }
-               }
-           }.show()
+                    span(Date().toLocaleDateString("default", dateLocaleOptions { month = "long"
+                        year = "numeric"}))
+                }
+
+                    flexPanel(FlexDirection.ROW, FlexWrap.WRAP, JustifyContent.SPACEBETWEEN, AlignItems.CENTER,
+                        spacing = 5){
+                        height = 5.perc
+                        div { (span(" "))}
+                        this.add(choosedDate)
+                        div {
+                            button("", "bi bi-x", ButtonStyle.LIGHT).apply {
+                                onClick {
+                                    if(document.fullscreen){ document.exitFullscreen()}
+                                    this@run.hideFlyout()
+                                }
+                            }
+                        }
+                    }
+
+                    this.add(timetable.apply {
+                        height  = 80.perc
+                        overflow = Overflow.AUTO
+                        marginTop = 5.perc
+                    })
 
 
+                div{
+                    marginBottom = 5.perc
+                    height = 5.perc
+                    width = 100.perc
+                    button("", style = ButtonStyle.DARK, icon = "bi bi-arrow-left-square" ).apply {
+                        position = Position.RELATIVE
+                        marginRight = 0.px
+                        width =  41.perc
+                        left = 5.perc
 
-        AppScope.launch {
-          /*  table.updateTable()*/
+                        onClick {
+                            choosedDate.apply {
+                                this.removeAll()
+                                this.span(timetable.changeMonth(-1).toLocaleDateString("default", dateLocaleOptions { month = "long";
+                                    year = "numeric" }))
+                            }
+                        }
+                    }
+
+
+                    button("", style = ButtonStyle.DARK, icon = "bi bi-arrow-right-square").apply {
+                        position = Position.ABSOLUTE
+                        width =  41.perc
+                        right = 5.perc
+
+                        onClick {
+                            choosedDate.apply {
+                                this.removeAll()
+                                this.span(timetable.changeMonth(1).toLocaleDateString("default", dateLocaleOptions { month = "long";
+                                    year = "numeric" }))
+                            }
+                        }
+                    }
+                }
+            }
+
+            delay(300)
+            container.add(this)
+            showFlyout()
+            delay(100)
+            document.querySelector("body")?.requestFullscreen()
         }
     }
 
     fun vid(container: Container){
-        container.offcanvas(caption = "Videos", placement = OffPlacement.BOTTOM){
-           height = 100.perc
-        AppScope.launch {
-                Model.videos(this@offcanvas)
-            }
+        console.log(Model.member.value)
+        val week =  kotlinx.datetime.internal.JSJoda.LocalDate.now(Clock.systemDefaultZone()).isoWeekOfWeekyear().toString()
 
+        val offC = container.offcanvas(caption = "Videos", placement = OffPlacement.BOTTOM){
+            height = 100.perc
+            vPanel {
+                AppScope.launch {
+                    Model.videos(this@vPanel)
+                }
+            }
+        }
+
+        if(Model.member.value.letzterLoginWeek?.split(";")?.toTypedArray()?.last() == week ){
+            offC.show()
+            saveDateToMember()
+        } else {
+        Modal("Videos aufrufen"){
+            vPanel {
+                span("Die Videos für diese Woche freischalten?")
+                span("(eine Pilatesstunde nutzen)")
+                hPanel(spacing = 10) {
+                    button("Ja").onClick {
+
+                        AppScope.launch {
+                            with(Model.member) {
+                            value.letzterLoginWeek = "${value.letzterLoginWeek};$week"
+                                .takeIf { value.letzterLoginWeek?.split(";")?.last() != week }
+                                ?: value.letzterLoginWeek
+                            }
+                        }
+                        saveDateToMember()
+                        offC.show()
+                        this@Modal.hide()
+
+                    }
+                    button("Nein").onClick { this@Modal.hide() }
+                }
+            }
         }.show()
+        }
+    }
+
+    private fun saveDateToMember() {
+        with(Model.member) {
+            val dateString = LocalDate(LocalDateTime.now()).toStringF("DD.MM.YYYY")
+            value.letzterlogin = "${value.letzterlogin};$dateString"
+                .takeIf { value.letzterlogin?.split(";")?.last() != dateString }
+                ?: value.letzterlogin
+
+            value.logins = (value.logins ?: 1) + 1
+
+            AppScope.launch {
+                Model.updateMember(value)
+            }
+        }
     }
 }

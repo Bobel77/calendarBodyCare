@@ -1,6 +1,5 @@
 package com.example.calendar
 
-import io.kvision.core.onClick
 import io.kvision.core.onEvent
 import io.kvision.form.FormPanel
 import io.kvision.form.formPanel
@@ -8,16 +7,13 @@ import io.kvision.form.text.Password
 import io.kvision.form.text.Text
 import io.kvision.html.Button
 import io.kvision.html.ButtonStyle
-import io.kvision.html.button
 import io.kvision.i18n.I18n.tr
-import io.kvision.modal.Alert
 import io.kvision.modal.Dialog
 import io.kvision.remote.Credentials
 import io.kvision.remote.LoginService
 import io.kvision.remote.SecurityMgr
 import io.kvision.utils.ENTER_KEY
 import kotlinx.browser.document
-import kotlinx.coroutines.launch
 
 class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, animation = false) {
 
@@ -37,9 +33,7 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
                     }
                 }
             }
-
         }
-
 
         loginButton = Button("Login", "fas fa-check", ButtonStyle.PRIMARY) {
             onClick {
@@ -53,10 +47,9 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
                 document.location!!.reload()
              }
         }
-
-
+        addButton(closeBtn)
         addButton(loginButton)
-        add(closeBtn)
+
     }
 
 
@@ -66,8 +59,6 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
             loginPanel.clearData()
         }
     }
-
-
 }
 
 object Security : SecurityMgr() {
