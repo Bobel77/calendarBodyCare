@@ -1,6 +1,7 @@
 package com.example.calendar
 
 
+import com.example.calendar.EventsTable.nullable
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.datetime
 
@@ -33,6 +34,11 @@ object VideoTable : IntIdTable(){
     val video1 = integer("Video1")
     val video2 = integer("Video2")
     val date = datetime("Datum")
+}
+
+object LayoutTable : IntIdTable(){
+    val name = varchar("Name", 8000)
+    val layout = varchar("Layout", 8000)
 }
 
 

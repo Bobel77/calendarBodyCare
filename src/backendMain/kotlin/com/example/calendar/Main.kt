@@ -18,14 +18,9 @@ import org.koin.dsl.module
 import org.jetbrains.exposed.sql.and
 import org.apache.commons.codec.digest.DigestUtils
 import io.ktor.server.plugins.callloging.*
-import io.ktor.server.plugins.cors.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.*
-import io.ktor.util.*
-import io.ktor.util.Identity.decode
-import org.apache.commons.codec.binary.Hex
-import kotlin.collections.set
+import java.io.File
+import io.ktor.server.plugins.forwardedheaders.XForwardedHeaders
 
 
 
@@ -33,10 +28,13 @@ fun Application.main() {
     install(Compression)
     install(DefaultHeaders)
     install(CallLogging)
-    install(Sessions) {
-        cookie<Member>("KTSESSION", storage = SessionStorageMemory()) {
+    install(XForwardedHeaders)
+    install(Sessions){
+        cookie<Member>("KTSESSION", storage = directorySessionStorage(File("build/.sessions"))) {
             cookie.path = "/"
-            cookie.extensions["SameSite"] = "strict"
+          /*  cookie.extensions["SameSite"] = "strict"*/
+            cookie.secure = true
+            cookie.maxAge = null
         }
     }
 
@@ -64,7 +62,6 @@ fun Application.main() {
 
     routing {
         applyRoutes(getServiceManager<IRegisterProfileService>())
-
         authenticate {
             post("login") {
                 val principal = call.principal<UserIdPrincipal>()
@@ -79,14 +76,14 @@ fun Application.main() {
                                     nachname = it[MemberTbl.nachname],
                                     logins = it[MemberTbl.logins],
                                     letzterlogin = it[MemberTbl.letzterLogin],
-                                    letzterLoginWeek = it[MemberTbl.letzterLoginWeek]
+                                    letzterLoginWeek = it[MemberTbl.letzterLoginWeek],
+                                    abo = it[MemberTbl.abo]
                                 )
                             call.sessions.set(profile)
                             HttpStatusCode.OK
                         } ?: HttpStatusCode.Unauthorized
                     }
                 } else {
-
                     HttpStatusCode.Unauthorized
                 }
                 call.respond(result)

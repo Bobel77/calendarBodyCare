@@ -12,23 +12,22 @@ import kotlinx.coroutines.launch
 
 class UserJoined() {
 
-   init {
-          Menu.myMenu.add(Link("Ausloggen", className = "ovalzwei-menu-item", url = "/logout").apply {
-                this.onClick {
-                    jQuery(".ovalzwei-menu-item").removeClass("accio")
-                    jQuery(getElement()).addClass("accio")
-                }
-            })
-       AppScope.launch {
+    init {
+        Menu.myMenu.add(Link("Ausloggen", className = "ovalzwei-menu-item", url = "/logout").apply {
+            this.onClick {
+                jQuery(".ovalzwei-menu-item").removeClass("accio")
+                jQuery(getElement()).addClass("accio")
+            }
+        })
+        AppScope.launch {
 
-           delay(20)
-          /* if(Model.myEvents.isEmpty()){
+            delay(20)
+            /* if(Model.myEvents.isEmpty()){
 
-               document.location?.reload()
-           }*/
-       }
+                 document.location?.reload()
+             }*/
+        }
 
 
-
-   }
+    }
 }

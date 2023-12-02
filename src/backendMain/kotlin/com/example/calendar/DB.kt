@@ -12,8 +12,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object DB {
     fun init() {
         val driverClassName = "org.postgresql.Driver"
-       /* val jdbcURL = "jdbc:postgresql://localhost:5432/member?user=laz&password=lazy"*/
-        val jdbcURL = "jdbc:postgresql://localhost:6060/member?user=laz&password=lazy"
+        val jdbcURL = "jdbc:postgresql://localhost:5432/member?user=laz&password=lazy"
+/*        val jdbcURL = "jdbc:postgresql://localhost:6060/member?user=laz&password=lazy"*/
         val database = Database.connect(jdbcURL, driverClassName)
 
 
@@ -22,6 +22,7 @@ object DB {
             SchemaUtils.create(WeekEvents)
             SchemaUtils.create(EventsTable)
             SchemaUtils.create(VideoTable)
+            SchemaUtils.create(LayoutTable)
         }
     }
     suspend fun <T> dbQuery(block: suspend () -> T): T =

@@ -1,5 +1,6 @@
 package com.example.calendar
 
+import com.example.calendar.helper.Model
 import io.kvision.core.onEvent
 import io.kvision.form.FormPanel
 import io.kvision.form.formPanel
@@ -41,11 +42,11 @@ class LoginWindow : Dialog<Credentials>(closeButton = false, escape = false, ani
             }
         }
 
-        closeBtn =  Button("schließen","fas fa-times", ButtonStyle.PRIMARY){
-             onClick {
-                document.location!!.href = document.URL.split("#!/")[0] +"#!/Home"
+        closeBtn = Button("schließen", "fas fa-times", ButtonStyle.PRIMARY) {
+            onClick {
+                document.location!!.href = document.URL.split("#!/")[0] + "#!/Home"
                 document.location!!.reload()
-             }
+            }
         }
         addButton(closeBtn)
         addButton(loginButton)

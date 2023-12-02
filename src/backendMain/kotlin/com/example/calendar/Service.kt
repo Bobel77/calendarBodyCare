@@ -6,11 +6,10 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.sessions.*
 import io.kvision.types.LocalDateTime
-import io.kvision.types.toStringF
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import java.time.LocalDate
+import org.koin.core.qualifier.named
 import java.time.temporal.WeekFields
 import java.util.*
 
@@ -24,6 +23,7 @@ suspend fun <RESP> ApplicationCall.withProfile(block: suspend (Member) -> RESP):
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual class DatabaseService: IDatabaseService {
+
     override suspend fun getMembers(): List<Member> {
         return dbQuery {
             MemberTbl.selectAll().map {
@@ -37,19 +37,25 @@ actual class DatabaseService: IDatabaseService {
             it[this.vorname] = member.vorname!!
             it[this.nachname] = member.nachname!!
             it[this.username] = member.vorname + "." + member.nachname
-            it[this.logins] = member.logins
+            it[this.logins] = member.logins?: 0
             it[this.letzterLogin] = member.letzterlogin
             it[this.letzterLoginWeek] = member.letzterLoginWeek
+            it[this.abo] = member.abo!!
             if (member.password != null) {
                 it[this.password] = DigestUtils.sha256Hex(member.password)
             }
         }
     }
 
+    override suspend fun deleteMember(mId:Int):Unit = dbQuery{
+        MemberTbl.deleteWhere {
+            (MemberTbl.id eq mId)
+        }
+    }
+
     private fun resultRowToMemberTable(row: ResultRow) = Member(
         id = row[MemberTbl.id].value,
         username = row[MemberTbl.username],
-        password = row[MemberTbl.password],
         vorname = row[MemberTbl.vorname],
         nachname = row[MemberTbl.nachname],
         logins = row[MemberTbl.logins],
@@ -59,16 +65,12 @@ actual class DatabaseService: IDatabaseService {
     )
 
     override suspend fun getEvents(year: Int, month: Int, dayOfMonth: Int): List<Pair<MyEvent, List<Member?>>> {
-
         return dbQuery {
             EventsTable
-                .leftJoin(WeekEvents, { EventsTable.id }, { WeekEvents.eventID })
+                .leftJoin(WeekEvents, { EventsTable.id }, { eventID })
                 .leftJoin(MemberTbl, { WeekEvents.memberID }, { MemberTbl.id })
                 .slice(EventsTable.columns + MemberTbl.columns)
-                .selectAll() /*{
-                *//*EventsTable.uhrzeit.month() eq month*//*
-                        EventsTable.calendarWeek eq week
-            }*/
+                .selectAll()
                 .map {
                     val event = MyEvent(
                         id = it[EventsTable.id].value,
@@ -92,15 +94,25 @@ actual class DatabaseService: IDatabaseService {
 
 
     //// Neue Stunde hinzufügen
-    override suspend fun insertEvent(myEvent: MyEvent): Unit = dbQuery {
+   /* override suspend fun insertEvent(myEvent: MyEvent): Unit = dbQuery {
         EventsTable.insert {
             it[training] = myEvent.training
             it[uhrzeit] = myEvent.localDateTime!!
             it[calendarWeek] = myEvent.localDateTime!!.get(WeekFields.of(Locale.GERMANY).weekOfYear())
             it[anzahlTeilnehmer] = myEvent.anzahlTeilnehmer
         }
-    }
+    }*/
 
+    override suspend fun insertEvent(myEvent: MyEvent): Int {
+        return dbQuery {
+            EventsTable.insertAndGetId  {
+                it[training] = myEvent.training
+                it[uhrzeit] = myEvent.localDateTime!!
+                it[calendarWeek] = myEvent.localDateTime!!.get(WeekFields.of(Locale.GERMANY).weekOfYear())
+                it[anzahlTeilnehmer] = myEvent.anzahlTeilnehmer
+            }
+        }.value
+    }
     override suspend fun updateEvent(myEvent: MyEvent): Unit = dbQuery {
         EventsTable.update({ EventsTable.id eq myEvent.id }) {
             it[training] = myEvent.training
@@ -119,13 +131,13 @@ actual class DatabaseService: IDatabaseService {
 
     override suspend fun deleteMemberFromEvent(mId: Int, eId: Int): Unit = dbQuery {
         WeekEvents.deleteWhere {
-            (WeekEvents.eventID eq eId) and (WeekEvents.memberID eq mId)
+            (eventID eq eId) and (memberID eq mId)
         }
     }
 
-    override suspend fun deleteEvent(event: MyEvent): Unit = dbQuery {
+    override suspend fun deleteEvent(myEvent: MyEvent): Unit = dbQuery {
         EventsTable.deleteWhere {
-            (EventsTable.id eq event.id)
+            (EventsTable.id eq myEvent.id)
         }
     }
 
@@ -156,12 +168,23 @@ actual class DatabaseService: IDatabaseService {
             }
         }
     }
+    override suspend fun saveLayout(siteName: String, flexlayout: String) {
+        dbQuery {
+            LayoutTable.insert {
+                it[name] = siteName
+                it[layout] = flexlayout
+            }
+        }
+    }
+    override suspend fun getLayout(): List<Pair<String, String>> {
+      return  LayoutTable.selectAll().map {
+            Pair(it[LayoutTable.name], it[LayoutTable.layout])
+        }.toMutableList()
+    }
+
+
 }
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
-actual class BiggiService : IBiggiService{
-
-}
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual class ProfileService(private val call: ApplicationCall) : IProfileService {
     override suspend fun getProfile(): Member {

@@ -1,16 +1,19 @@
-package com.example.calendar
+package com.example.calendar.helper
 
+import com.example.calendar.*
 import io.kvision.core.Container
 import io.kvision.dropdown.contextMenu
-import io.kvision.html.*
+import io.kvision.html.TAG
+import io.kvision.html.Tag
 import io.kvision.remote.getService
 import io.kvision.state.ObservableValue
 import io.kvision.state.observableListOf
 import io.kvision.utils.syncWithList
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 
 
 object Model {
+
     private val profileService = getService<IProfileService>()
     private val registerProfileService = getService<IRegisterProfileService>()
     private val databaseService = getService<IDatabaseService>()
@@ -19,30 +22,41 @@ object Model {
     var allMembers = observableListOf<Member>()
 
 
-    val offCanvasSpans = arrayListOf<Site>(
-        Site("Home", listOf<Span>(Span("Home"))),
+    val offCanvasSpans = observableListOf<Site>(
+      /*  Site("Home", "red-rectangle || home"),*/
         /*   Site("Termine", listOf<Span>(Span("Termine")),""calender""),*/
-        Site("Pilates", listOf<Span>(Span("Pilates"))),
-        Site("Aktuelles", listOf<Span>(Span("Aktuelles")), ""),
-        Site("Preise", listOf<Span>(Span("Preise"))),
-        Site("Unser_Team", listOf<Span>(Span("Unser Team"))),
-        Site("Kontaktformular", listOf<Span>(Span("Kontaktformular"))),
-        Site("Mitgliederbereich", listOf<Span>(Span("Mitgliederbereich")),"Mitgliederbereich"),
-        Site("Impressum", listOf<Span>(Span("Impressum"))),
+     /*   Site("Pilates", "red-rectangle || Pilates"),
+        Site("Aktuelles",  "red-rectangle || aktuelles", ""),
+        Site("Preise",  "red-rectangle || preis"),
+        Site("Unser_Team", "red-rectangle || Team"),
+        Site("Kontaktformular", "red-rectangle || Kontakt"),*/
+        Site("Mitgliederbereich", "red-rectangle || ", "Mitgliederbereich"),
+/*        Site("Impressum",  "red-rectangle || impr")*/
     )
-/// functions for members
-     suspend fun changeVideos(vid: Array<Int>){
-        databaseService.changeVideos(vid)
+
+   /* fun setSearch(search: String?) {
+        allMembers.value = addressBook.value.copy(search = search)
+    }*/
+    /// functions for members
+    suspend fun changeVideos(vid: Array<Int>) {
+       Security.withAuth {
+           databaseService.changeVideos(vid)
+       }
+
     }
-    suspend fun videos(container: Container){
-    val vids : List<Int> = databaseService.getVideos()
-    delay(50)
+
+    suspend fun videos(container: Container) {
+        var vids: List<Int>
         Security.withAuth {
+        withContext(Dispatchers.Default){
+           vids = databaseService.getVideos()
+
+
             try {
                 vids.forEach {
 
                     val vid = "https://bodycare-pilates.de/Videos/stunde${it}low.mp4"
-                    val myVid: Tag = Tag(
+                    val myVid = Tag(
                         TAG.VIDEO, attributes = mapOf(
                             "src" to vid,
                             "type" to "video/mp4",
@@ -50,53 +64,69 @@ object Model {
                             "height" to "400",
                             "controls" to "false",
                             "controlsList" to "nodownload"
-                        )){
+                        )
+                    ) {
                         contextMenu { }
                     }
                     container.add(myVid)
                 }
-            } catch (e:Exception){console.log("Vid init failed")}
+            } catch (e: Exception) {
+                console.log("Vid init failed")
+            }
+        }
         }
     }
 
     suspend fun getMembers() {
-        allMembers.syncWithList(databaseService.getMembers())
+        allMembers.apply {
+            syncWithList(databaseService.getMembers())
+            sortBy { it.nachname }
+        }
     }
 
-    suspend fun deleteMemberFromEvent(mId: Int, eId: Int){
+    suspend fun deleteMember(mId: Int) {
+        databaseService.deleteMember(mId)
+    }
+
+    suspend fun deleteMemberFromEvent(mId: Int, eId: Int) {
         Security.withAuth {
             databaseService.deleteMemberFromEvent(mId, eId)
         }
     }
-    suspend fun addMemberToEvent(mId: Int, eId: Int){
+
+    suspend fun addMemberToEvent(mId: Int, eId: Int) {
         Security.withAuth {
             databaseService.addMemberToEvent(mId, eId)
         }
     }
 
-    suspend fun updateMember(member: Member){
+    suspend fun updateMember(member: Member) {
         databaseService.updateMembers(member)
     }
 
     /// function for SuperUser
-    suspend fun insertEvent(myEvent: MyEvent){
+    suspend fun insertEvent(myEvent: MyEvent): Int {
+        var id: Int = 0
         Security.withAuth {
-            databaseService.insertEvent(myEvent)
+          id =  databaseService.insertEvent(myEvent)
         }
+        return id
     }
-    suspend fun updateEvents(myEvent: MyEvent){
+
+    suspend fun updateEvents(myEvent: MyEvent) {
         Security.withAuth {
             databaseService.updateEvent(myEvent)
         }
     }
-    suspend fun getEvents(year: Int, month: Int, day: Int){
+
+    suspend fun getEvents(year: Int, month: Int, day: Int) {
         Security.withAuth {
             myEvents.clear()
-        myEvents.syncWithList(databaseService.getEvents(year, month, day))
-    }
+            myEvents.syncWithList(databaseService.getEvents(year, month, day))
+        }
     }
 
-    suspend fun deleteEvent(event: MyEvent){
+    suspend fun deleteEvent(event: MyEvent) {
         Security.withAuth {
             databaseService.deleteEvent(event)
         }
@@ -104,11 +134,13 @@ object Model {
 
     suspend fun readProfile() {
         Security.withAuth {
-            member.value = profileService.getProfile()
-            if(profileService.bigMama()){
-                Big()
+            withContext(Dispatchers.Default) {
+                member.value = profileService.getProfile()
+                if (profileService.bigMama()) {
+                    Big()
+                }
+                UserJoined()
             }
-            UserJoined()
         }
 
     }
@@ -123,7 +155,6 @@ object Model {
             false
         }
     }
-
 
 
 }

@@ -1,10 +1,11 @@
 @file:UseContextualSerialization(LocalDateTime::class)
 package com.example.calendar
 
+import io.kvision.types.LocalDate
 import io.kvision.types.LocalDateTime
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseContextualSerialization
+
 
 @Serializable
 data class MyEvent(
@@ -13,6 +14,7 @@ data class MyEvent(
     var training: String? = null,
     var anzahlTeilnehmer: Int? = null
 )
+
 @Serializable
 data class Member(
     val id: Int?  = null,
@@ -24,5 +26,6 @@ data class Member(
     var letzterlogin: String?  = null,
     var letzterLoginWeek: String? = null,
     var password2: String? = null,
-    val abo: Boolean? = null,
+    var abo: Boolean? = null,
 )
+
